@@ -1,0 +1,14 @@
+matplotlib
+tqdm
+plotly
+opencv-python
+wandb
+torchmetrics==0.10.0
+seaborn
+mitsuba
+h5py
+multimethod
+easydict
+nuscenes-devkit
+timm==0.9.7
+trimesh

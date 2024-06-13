@@ -1,0 +1,243 @@
+data_path: ./data/shapenet-processed
+outdir: ./out/debug
+batch_size: 24
+lr: 0.0003
+weights: ''
+epochs: 121
+dataset_source: shapenet-seg
+task: classification
+save_every: 20
+only_val: False
+only_viz: False
+only_test: False
+use_curvature: False
+use_additional_losses: "regular-only"
+use_lovasz_loss: False
+use_ce_weights: False
+
+data_generation:
+  line_density: 0.25
+  num_points: 2048
+  resolution: 2048
+  laser_motion: random
+
+bn_momentum_decay: 0.97
+scheduler:
+  name: exp
+  lr_gamma: 0.97
+
+model:
+  type: generic
+  use_bias: True
+  version: 1.0
+  steps:
+    - step_name: sa-geo
+      curve_fps_arclen: 0.04
+      use_curve_fps: True
+      use_curve_knn: True
+      with_xyz: True
+      aggr_type: attend
+      normalize_radius: True
+    - step_name: mlp
+      plain_last: False
+      with_xyz: True
+
+    - step_name: conv1d-fast-v1
+      with_diff: True
+      with_xyz: True
+    - skip-connect
+    - step_name: sa
+      aggr_type: attend
+      normalize_radius: True
+      use_fast_knn: False
+      downsample_type: fps
+
+    - step_name: sgcnn
+      with_xyz: True
+      use_fast_knn: False
+      use_sparse_feat_agg: True
+    - skip-connect
+    - step_name: sa
+      aggr_type: attend
+      normalize_radius: True
+      use_fast_knn: False
+      downsample_type: fps
+
+    - step_name: sgcnn
+      with_xyz: True
+      use_fast_knn: False
+      use_sparse_feat_agg: True
+    - skip-connect
+    - step_name: sa
+      aggr_type: attend
+      normalize_radius: True
+      use_fast_knn: False
+      downsample_type: fps
+
+    - step_name: sgcnn
+      with_xyz: True
+      use_fast_knn: False
+      use_sparse_feat_agg: True
+    - step_name: sgcnn
+      use_fast_knn: False
+      use_sparse_feat_agg: True
+    - skip-connect
+
+    - sa-global
+
+  feat_dims:
+    - - 64  # sa-geo
+      - 128
+      - 256  # expand before max-pool for greater feature efficiency
+      - 512
+    - - 256  # mlp
+      - 128
+      - 64
+
+    - - 64  # sgcnn
+      - 64
+    - - 128  # skip
+      - 128
+    - - 128  # down
+      - 128
+      - 128
+
+    - - 128  # sgcnn
+      - 128
+    - - 256  # skip
+      - 256
+    - - 256  # down
+      - 256
+      - 256
+
+    - - 256  # sgcnn
+      - 256
+    - - 512  # skip
+      - 512
+    - - 512  # down
+      - 512
+      - 512
+
+    - - 512  # sgcnn
+      - 512
+    - - 512  # sgcnn
+      - 512
+    - - 1536  # skip
+      - 1024
+      - 1024
+
+    - - 1024  # sa-global
+      - 1024
+
+  out_mlp:
+    dims:
+      - 512
+      - 256
+      - 128
+    dropout: 0.0
+    with_seg_category: False
+
+  knn:
+    - null  # sa-geo
+    - null  # mlp
+
+    - 30  # sgcnn
+    - null  # skip
+    - null  # down
+    - 30  # sgcnn
+    - null  # skip
+    - null  # down
+    - 30  # sgcnn
+    - null  # skip
+    - null  # down
+
+    - 30  # sgcnn
+    - 30  # sgcnn
+    - 30  # skip
+
+    - null
+
+  ratios:
+    - null  # sa-geo
+    - null  # mlp
+
+    - null  # sgcnn
+    - null  # skip
+    - 0.25  # down
+    - null  # sgcnn
+    - null  # skip
+    - 0.25  # down
+    - null  # sgcnn
+    - null  # skip
+    - 0.25  # down
+
+    - null  # sgcnn
+    - null  # sgcnn
+    - null  # skip
+
+    - null
+
+  radii:
+    - 0.075  # sa-geo
+    - null  # mlp
+
+    - null  # sgcnn
+    - null  # skip
+    - 0.2  # down
+    - null  # sgcnn
+    - null  # skip
+    - 0.4  # down
+    - null  # sgcnn
+    - null  # skip
+    - 0.8  # down
+
+    - null  # sgcnn
+    - null  # sgcnn
+    - null  # skip
+
+    - null
+
+  num_skips:
+    - null  # sa-geo
+    - null  # mlp
+
+    - null  # sgcnn
+    - 1  # skip
+    - null  # down
+    - null  # sgcnn
+    - 1  # skip
+    - null  # down
+    - null  # sgcnn
+    - 1  # skip
+    - null  # down
+
+    - null  # sgcnn
+    - null  # sgcnn
+    - 2  # skip
+
+    - null
+
+  kernel_sizes:
+    - null  # sa-geo
+    - null  # mlp
+
+    - 7  # sgcnn
+    - null  # skip
+    - null  # down
+    - null  # sgcnn
+    - null  # skip
+    - null  # down
+    - null  # sgcnn
+    - null  # skip
+    - null  # down
+
+    - null  # sgcnn
+    - null  # sgcnn
+    - null  # skip
+
+    - null
+
+
+  skip_connect_state_store:
+    - conv1d-fast-v1
+    - sgcnn

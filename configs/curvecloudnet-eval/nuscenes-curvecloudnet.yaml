@@ -1,0 +1,427 @@
+data_path: ./data/nuscenes
+nuscenes_yaml_path: ./configs/nuscenes.yaml
+outdir: ./out/ccn_nuscenes_eval
+batch_size: 1
+lr: 0.0005
+weights: './models/curvecloudnet/nuscenes.pth'
+epochs: 100
+dataset_source: nuscenes
+task: segmentation
+save_every: 3
+only_val: True
+only_viz: False
+only_test: False
+use_lovasz_loss: True
+use_ce_weights: False
+polarmix: True
+
+scheduler:
+  name: exp
+  lr_gamma: 0.96
+
+model:
+  type: generic
+  use_bias: False
+  version: 2.0
+  steps:
+    - step_name: conv1d-fast-v2
+      with_diff: True
+      with_xyz: True
+    - step_name: sa-geo
+      curve_fps_arclen: 0.007  # because we down-scale KITTI point cloud by 20x for normalization
+      use_curve_fps: True
+      use_curve_knn: True
+      with_xyz: True
+      aggr_type: attend
+      normalize_radius: True
+    - step_name: mlp
+      plain_last: False
+      with_xyz: True
+
+    - step_name: sgcnn
+      with_xyz: True
+      aggr_type: max
+    - skip-connect
+    - step_name: sa
+      aggr_type: attend
+      downsample_type: voxel
+      voxel_size: 0.03
+      normalize_radius: True
+      use_fast_knn: True
+
+    - step_name: sgcnn
+      with_xyz: True
+      aggr_type: max
+    - skip-connect
+    - step_name: sa
+      aggr_type: attend
+      downsample_type: voxel
+      voxel_size: 0.07
+      normalize_radius: True
+      use_fast_knn: True
+
+    - step_name: sgcnn
+      with_xyz: True
+      aggr_type: max
+    - skip-connect
+    - step_name: sa
+      aggr_type: attend
+      downsample_type: fps
+      normalize_radius: True
+      use_fast_knn: True
+
+    - step_name: sgcnn
+      with_xyz: True
+      aggr_type: max
+    - skip-connect
+    - step_name: sa
+      aggr_type: max
+      downsample_type: fps
+      normalize_radius: True
+      use_fast_knn: True
+
+    - step_name: sgcnn
+      with_xyz: True
+      aggr_type: max
+    - step_name: sgcnn
+      aggr_type: max
+    - skip-connect
+
+    - step_name: fp
+      with_xyz: True
+    - sgcnn
+    - skip-connect
+
+    - step_name: fp
+      with_xyz: True
+    - sgcnn
+    - skip-connect
+
+    - step_name: fp
+      with_xyz: True
+    - sgcnn
+    - skip-connect
+
+    - step_name: fp
+      with_xyz: True
+    - step_name: sgcnn
+      with_xyz: True
+      aggr_type: max
+    - skip-connect
+
+    # upsample and process at high-res with convolution
+    - step_name: fp-geo
+      with_xyz: True
+    # process at low-res with convolution
+    - step_name: conv1d-fast-v2
+      with_diff: True
+      with_xyz: True
+    - skip-connect  # 1 skip
+
+  feat_dims:
+    - - 32
+      - 32
+      - 32
+    - - 64  # sa-geo
+      - 128
+      - 192  # expand before max-pool for greater feature efficiency
+      - 256
+    - - 256  # mlp
+      - 128
+      - 128
+      - 64
+
+    - - 64  # conv1d
+      - 64
+      - 64
+    - - 128  # skip
+      - 128
+      - 128
+    - - 128  # down
+      - 128
+      - 128
+
+    - - 128  # sgcnn
+      - 128
+    - - 256  # skip
+      - 256
+    - - 256  # down
+      - 256
+      - 256
+
+    - - 256  # sgcnn
+      - 256
+    - - 512  # skip
+      - 512
+    - - 512  # down
+      - 512
+      - 512
+
+    - - 512  # sgcnn
+      - 512
+    - - 1024  # skip
+      - 1024
+    - - 1024  # down
+      - 1024
+      - 1024
+
+    - - 1024  # sgcnn
+      - 1024
+    - - 1024  # sgcnn
+      - 1024
+    - - 3072  # skip
+      - 2048
+      - 1024
+
+    - - 2051  # fp
+      - 1024
+      - 512
+    - - 512  # sgcnn
+      - 512
+    - - 1024  # skip-connect
+      - 1024
+      - 512
+
+    - - 1027  # fp
+      - 512
+      - 256
+    - - 256  # sgcnn
+      - 256
+    - - 512  # skip-connect
+      - 512
+      - 256
+
+    - - 515  # fp
+      - 256
+      - 128
+    - - 128  # sgcnn
+      - 128
+    - - 256  # skip-connect
+      - 256
+      - 128
+
+    - - 259  # fp
+      - 128
+      - 64
+    - - 64  # conv1d
+      - 64
+      - 64
+    - - 128  # skip-connect
+      - 64
+      - 64
+
+    - - 99  # fp-geo  (raw input + our feature)  --> curve conv input
+      - 128
+      - 128
+    - - 32  # conv1d
+      - 32
+      - 32
+    - - 160  # skip-connect
+      - 128
+      - 64
+
+  out_mlp:
+    dims:
+      - 64
+      - 64
+    dropout: 0.0
+
+  knn:
+    - null  # conv
+    - null  # sa-geo
+    - null  # mlp
+
+    - 20  # sgcnn
+    - null  # skip
+    - 32  # down
+    - 20  # sgcnn
+    - null  # skip
+    - 32  # down
+    - 20  # sgcnn
+    - null  # skip
+    - 32  # down
+    - 20  # sgcnn
+    - null  # skip
+    - 32  # down
+
+    - 20  # sgcnn
+    - 20  # sgcnn
+    - 20  # skip
+
+    - 3  # fp
+    - 20  # sgcnn
+    - null  # skip
+    - 3  # fp
+    - 20  # sgcnn
+    - null  # skip
+    - 3  # fp
+    - 20  # sgcnn
+    - null  # skip
+    - 3  # fp
+    - 20  # sgcnn
+    - null  # skip
+
+    - 3  # fp-geo
+    - 8  # conv
+    - null  # skip
+
+  ratios:
+    - null  # conv
+    - null  # sa-geo
+    - null  # mlp
+
+    - null  # sgcnn
+    - null  # skip
+    - 0.3  # down
+    - null  # sgcnn
+    - null  # skip
+    - 0.3  # down
+    - null  # sgcnn
+    - null  # skip
+    - 0.3  # down
+    - null  # sgcnn
+    - null  # skip
+    - 0.3  # down
+
+    - null  # sgcnn
+    - null  # sgcnn
+    - null  # skip
+
+    - null  # fp
+    - null  # sgcnn
+    - null  # skip
+    - null  # fp
+    - null  # sgcnn
+    - null  # skip
+    - null  # fp
+    - null  # sgcnn
+    - null  # skip
+    - null  # fp
+    - null  # sgcnn
+    - null  # skip
+
+    - null  # fp-geo
+    - null  # conv
+    - null  # skip
+
+  radii:
+    - null  # conv
+    - 0.02  # sa-geo
+    - null  # mlp
+
+    - 0.04  # sgcnn
+    - null  # skip
+    - 0.04  # down
+    - 0.08  # sgcnn
+    - null  # skip
+    - 0.1  # down
+    - 0.3  # sgcnn
+    - null  # skip
+    - 0.3  # down
+    - 0.3  # sgcnn
+    - null  # skip
+    - 0.5  # down
+
+    - 0.8  # sgcnn
+    - 0.8  # sgcnn
+    - null  # skip
+
+    - null  # fp
+    - 0.3  # sgcnn
+    - null  # skip
+    - null  # fp
+    - 0.3  # sgcnn
+    - null  # skip
+    - null  # fp
+    - 0.08  # sgcnn
+    - null  # skip
+    - null  # fp
+    - 0.04  # sgcnn
+    - null  # skip
+
+    - null  # fp-geo
+    - 0.02  # conv
+    - null  # skip
+
+  num_skips:
+    - null  # conv
+    - null  # sa-geo
+    - null  # mlp
+
+    - null  # sgcnn
+    - 1  # skip
+    - null  # down
+    - null  # sgcnn
+    - 1  # skip
+    - null  # down
+    - null  # sgcnn
+    - 1  # skip
+    - null  # down
+    - null  # sgcnn
+    - 1  # skip
+    - null  # down
+
+    - null  # sgcnn
+    - null  # sgcnn
+    - 2  # skip
+
+    - null  # fp
+    - null  # sgcnn
+    - 1  # skip
+    - null  # fp
+    - null  # sgcnn
+    - 1  # skip
+    - null  # fp
+    - null  # sgcnn
+    - 1  # skip
+    - null  # fp
+    - null  # sgcnn
+    - 1  # skip
+
+    - null  # fp-geo
+    - null  # conv
+    - 1  # skip
+
+  kernel_sizes:
+    - 5  # conv
+    - null  # sa-geo
+    - null  # mlp
+
+    - 3  # sgcnn
+    - null  # skip
+    - null  # down
+    - null  # sgcnn
+    - null  # skip
+    - null  # down
+    - null  # sgcnn
+    - null  # skip
+    - null  # down
+    - null  # sgcnn
+    - null  # skip
+    - null  # down
+
+    - null  # sgcnn
+    - null  # sgcnn
+    - null  # skip
+
+    - null  # fp
+    - null  # sgcnn
+    - null  # skip
+    - null  # fp
+    - null  # sgcnn
+    - null  # skip
+    - null  # fp
+    - null  # sgcnn
+    - null  # skip
+    - null  # fp
+    - 3  # sgcnn
+    - null  # skip
+
+    - null  # fp-geo
+    - 5  # conv
+    - null  # skip
+
+
+  skip_connect_state_store:
+    - conv1d-fast-v2
+    - sgcnn

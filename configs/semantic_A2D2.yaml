@@ -1,0 +1,305 @@
+# Our setting is a little bit different from that of mDALU probably because there were updates on the dataset.
+# The segmentation part contains 38481 frames in total and we used both 20180807_145028 and 20180810_142822 for eval
+# There are 54 marked labels in the original setting, we categorize it into 
+
+sensor_configuration_file: './configs/a2d2_cams_lidars.json'
+
+# original audi dataset label dictionary
+labels: {
+    0: 'Car 1', 
+    1: 'Car 2', 
+    2: 'Car 3', 
+    3: 'Car 4', 
+    4: 'Bicycle 1', 
+    5: 'Bicycle 2', 
+    6: 'Bicycle 3', 
+    7: 'Bicycle 4', 
+    8: 'Pedestrian 1', 
+    9: 'Pedestrian 2', 
+    10: 'Pedestrian 3', 
+    11: 'Truck 1', 
+    12: 'Truck 2', 
+    13: 'Truck 3', 
+    14: 'Small vehicles 1', 
+    15: 'Small vehicles 2', 
+    16: 'Small vehicles 3', 
+    17: 'Traffic signal 1', 
+    18: 'Traffic signal 2', 
+    19: 'Traffic signal 3', 
+    20: 'Traffic sign 1', 
+    21: 'Traffic sign 2', 
+    22: 'Traffic sign 3', 
+    23: 'Utility vehicle 1', 
+    24: 'Utility vehicle 2', 
+    25: 'Sidebars', 
+    26: 'Speed bumper', 
+    27: 'Curbstone', 
+    28: 'Solid line', 
+    29: 'Irrelevant signs', 
+    30: 'Road blocks', 
+    31: 'Tractor', 
+    32: 'Non-drivable street', 
+    33: 'Zebra crossing', 
+    34: 'Obstacles / trash', 
+    35: 'Poles', 
+    36: 'RD restricted area', 
+    37: 'Animals', 
+    38: 'Grid structure', 
+    39: 'Signal corpus', 
+    40: 'Drivable cobblestone', 
+    41: 'Electronic traffic', 
+    42: 'Slow drive area', 
+    43: 'Nature object', 
+    44: 'Parking area', 
+    45: 'Sidewalk', 
+    46: 'Ego car', 
+    47: 'Painted driv. instr.', 
+    48: 'Traffic guide obj.', 
+    49: 'Dashed line', 
+    50: 'RD normal street', 
+    51: 'Sky', 
+    52: 'Buildings', 
+    53: 'Blurred area', 
+    54: 'Rain dirt'
+}
+
+# bgr color map for the original dataset.
+color_map: {
+    0: [255, 0, 0], 
+    1: [200, 0, 0], 
+    2: [150, 0, 0], 
+    3: [128, 0, 0], 
+    4: [182, 89, 6], 
+    5: [150, 50, 4], 
+    6: [90, 30, 1], 
+    7: [90, 30, 30], 
+    8: [204, 153, 255], 
+    9: [189, 73, 155], 
+    10: [239, 89, 191], 
+    11: [255, 128, 0], 
+    12: [200, 128, 0], 
+    13: [150, 128, 0], 
+    14: [0, 255, 0], 
+    15: [0, 200, 0], 
+    16: [0, 150, 0], 
+    17: [0, 128, 255], 
+    18: [30, 28, 158], 
+    19: [60, 28, 100], 
+    20: [0, 255, 255], 
+    21: [30, 220, 220], 
+    22: [60, 157, 199], 
+    23: [255, 255, 0], 
+    24: [255, 255, 200], 
+    25: [233, 100, 0], 
+    26: [110, 110, 0], 
+    27: [128, 128, 0], 
+    28: [255, 193, 37],
+    29: [64, 0, 64], 
+    30: [185, 122, 87], 
+    31: [0, 0, 100], 
+    32: [139, 99, 108], 
+    33: [210, 50, 115], 
+    34: [255, 0, 128], 
+    35: [255, 246, 143], 
+    36: [150, 0, 150], 
+    37: [204, 255, 153], 
+    38: [238, 162, 173], 
+    39: [33, 44, 177], 
+    40: [180, 50, 180], 
+    41: [255, 70, 185], 
+    42: [238, 233, 191], 
+    43: [147, 253, 194], 
+    44: [150, 150, 200], 
+    45: [180, 150, 200], 
+    46: [72, 209, 204], 
+    47: [200, 125, 210], 
+    48: [159, 121, 238], 
+    49: [128, 0, 255], 
+    50: [255, 0, 255], 
+    51: [135, 206, 255], 
+    52: [241, 230, 255], 
+    53: [96, 69, 143], 
+    54: [53, 46, 82]
+}
+
+#learning map, created by hand. 
+learning_map:
+    0: 7          #'Car 1',  map to car
+    1: 7          #'Car 2',  map to car
+    2: 7          #'Car 3',  map to car
+    3: 7          #'Car 4',  map to car
+    4: 9          #'Bicycle 1', map to bike
+    5: 9          #'Bicycle 2', map to bike
+    6: 9          #'Bicycle 3', map to bike
+    7: 9          #'Bicycle 4', map to bike
+    8: 6          #'Pedestrian 1', map to person
+    9: 6          #'Pedestrian 2', map to person
+    10: 6         #'Pedestrian 3', map to person
+    11: 8         #'Truck 1', map to truck
+    12: 8         #'Truck 2', map to truck
+    13: 8         #'Truck 3', map to truck
+    14: 12        #'Small vehicles 1', map to other
+    15: 12        #'Small vehicles 2', map to other
+    16: 12        #'Small vehicles 3', map to other
+    17: 10        #'Traffic signal 1', map to Traffic signal
+    18: 10        #'Traffic signal 2', map to Traffic signal
+    19: 10        #'Traffic signal 3', map to Traffic signal
+    20: 4         #'Traffic sign 1', map to signs
+    21: 4         #'Traffic sign 2', map to signs
+    22: 4         #'Traffic sign 3', map to signs
+    23: 12        #'Utility vehicle 1', map to other
+    24: 12        #'Utility vehicle 2', map to other
+    25: 11        #'Sidebars', map to obstacles
+    26: 0         #'Speed bumper', map to road
+    27: 1         #'Curbstone', map to sidewalk
+    28: 0         #'Solid line', map to road
+    29: 4         #'Irrelevant signs', map to signs
+    30: 11        #'Road blocks', map to obstacles
+    31: 12        #'Tractor', map to other
+    32: 1         #'Non-drivable street', map to sidewalk
+    33: 0         #'Zebra crossing', map to road
+    34: 11        #'Obstacles / trash', map to obstacles
+    35: 3         #'Poles', map to poles
+    36: 0         #'RD restricted area', map to road
+    37: 12        #'Animals', map to other
+    38: 5         #'Grid structure', map to nature 
+    39: 4         #'Signal corpus', map to signs
+    40: 0         #'Drivable cobblestone', map to road
+    41: 12        #'Electronic traffic', map to other
+    42: 0         #'Slow drive area', map to road
+    43: 5         #'Nature object', map to nature
+    44: 0         #'Parking area', map to road
+    45: 1         #'Sidewalk', map to sidewalk
+    46: 12        #'Ego car', map to other
+    47: 0         #'Painted driv. instr.', map to road
+    48: 4         #'Traffic guide obj.', map to signs
+    49: 0         #'Dashed line', map to road
+    50: 0         #'RD normal street', map to road
+    51: 12        #'Sky', map to others
+    52: 2         #'Buildings', map to buildings
+    53: 12        #'Blurred area', map to others
+    54: 12        #'Rain dirt', map to others
+
+# inversed learning map
+learning_map_inv: 
+    0: 26      # road
+    1: 27      # sidewalk
+    2: 52      # building
+    3: 35      # pole
+    4: 20      # traffic sign
+    5: 38      # nature
+    6: 8       # person
+    7: 0       # car
+    8: 11      # truck
+    9: 4       #bike
+    10: 17     # traffic signal
+    11: 25     # obstacle
+    12: 51     # others
+
+learning_map_inv_names:
+    0: "road"      # road
+    1: "sidewalk"      # sidewalk
+    2: "building"      # building
+    3: "pole"      # pole
+    4: "traffic sign"      # traffic sign
+    5: "nature"      # nature
+    6: "person"       # person
+    7: "car"       # car
+    8: "truck"      # truck
+    9: "bike"       #bike
+    10: "traffic signal"    # traffic signal
+    11: "obstacle"     # obstacle
+    12: "other"     # others
+
+learning_ignore: # Ignore classes
+  0: False     
+  1: False     
+  2: False    
+  3: False     
+  4: False     
+  5: False    
+  6: False   
+  7: False   
+  8: False     
+  9: False    
+  10: False   
+  11: False   
+  12: True  # others
+
+Hashed2label: {
+    2550000: 0, 
+    2000000: 1, 
+    1500000: 2, 
+    1280000: 3, 
+    1828906: 4, 
+    1505004: 5, 
+    903001: 6, 
+    903030: 7, 
+    2055555: 8, 
+    1897455: 9, 
+    2399091: 10, 
+    2562800: 11, 
+    2012800: 12, 
+    1512800: 13, 
+    25500: 14, 
+    20000: 15, 
+    15000: 16, 
+    13055: 17, 
+    302958: 18, 
+    602900: 19, 
+    25755: 20, 
+    322220: 21, 
+    615899: 22, 
+    2575500: 23, 
+    2575700: 24, 
+    2340000: 25, 
+    1111000: 26, 
+    1292800: 27, 
+    2569337: 28, 
+    640064: 29, 
+    1862287: 30, 
+    100: 31, 
+    1400008: 32, 
+    2105115: 33, 
+    2550128: 34, 
+    2574743: 35, 
+    1500150: 36, 
+    2065653: 37, 
+    2396373: 38, 
+    334577: 39, 
+    1805180: 40, 
+    2557185: 41, 
+    2403491: 42, 
+    1495494: 43, 
+    1515200: 44, 
+    1815200: 45, 
+    741104: 46, 
+    2012710: 47, 
+    1602338: 48, 
+    1280255: 49, 
+    2550255: 50, 
+    1370855: 51, 
+    2433255: 52, 
+    967043: 53, 
+    534682: 54,
+    0: 53
+}
+
+# some of the data, due to dataset reasons, does not have full annotations on them.
+#delete them when initialize the dataest.
+missing_path: ['Segmentation/semantic_val/20180810_142822/lidar/cam_front_center/20180810142822_lidar_frontcenter_000000004.npz',
+'Segmentation/semantic_train/20181107_132300/lidar/cam_front_center/20181107132300_lidar_frontcenter_000000020.npz',
+'Segmentation/semantic_train/20181107_132300/lidar/cam_front_center/20181107132300_lidar_frontcenter_000000022.npz',
+'Segmentation/semantic_train/20181107_132300/lidar/cam_front_center/20181107132300_lidar_frontcenter_000000041.npz',
+'Segmentation/semantic_train/20181107_132300/lidar/cam_front_center/20181107132300_lidar_frontcenter_000000049.npz',
+'Segmentation/semantic_train/20181107_132300/lidar/cam_front_center/20181107132300_lidar_frontcenter_000000050.npz',
+'Segmentation/semantic_train/20181107_132300/lidar/cam_front_center/20181107132300_lidar_frontcenter_000000055.npz',
+'Segmentation/semantic_train/20181107_132300/lidar/cam_front_center/20181107132300_lidar_frontcenter_000000057.npz',
+'Segmentation/semantic_train/20181107_132300/lidar/cam_front_center/20181107132300_lidar_frontcenter_000000063.npz',
+'Segmentation/semantic_train/20181107_132730/lidar/cam_front_center/20181107132730_lidar_frontcenter_000000035.npz',
+'Segmentation/semantic_train/20181107_132730/lidar/cam_front_center/20181107132730_lidar_frontcenter_000000051.npz',
+'Segmentation/semantic_train/20181107_132730/lidar/cam_front_center/20181107132730_lidar_frontcenter_000000055.npz',
+'Segmentation/semantic_train/20181107_132730/lidar/cam_front_center/20181107132730_lidar_frontcenter_000000061.npz',
+'Segmentation/semantic_train/20181108_103155/lidar/cam_front_center/20181108103155_lidar_frontcenter_000000028.npz',
+'Segmentation/semantic_train/20181108_103155/lidar/cam_front_center/20181108103155_lidar_frontcenter_000000033.npz']
+

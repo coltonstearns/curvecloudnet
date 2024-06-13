@@ -1,0 +1,9 @@
+data/
+!src/data/
+out/
+.idea
+**/__pycache__/**
+**/wandb/**
+notebooks/*/data*
+models/
+!src/models

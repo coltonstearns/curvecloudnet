@@ -1,0 +1,6 @@
+[submodule "third_party/minimal_pytorch_rasterizer"]
+	path = third_party/minimal_pytorch_rasterizer
+	url = https://github.com/rmbashirov/minimal_pytorch_rasterizer.git
+[submodule "third_party/FRNN"]
+	path = third_party/FRNN
+	url = https://github.com/lxxue/FRNN.git
