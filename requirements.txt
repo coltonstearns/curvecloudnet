@@ -1,7 +1,7 @@
 matplotlib
 tqdm
 plotly
-opencv-python
+opencv-python==4.8.0.74
 wandb
 torchmetrics==0.10.0
 seaborn
